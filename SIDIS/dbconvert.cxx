@@ -628,7 +628,7 @@ int main( int argc, const char** argv )
             // Find the actual number of channels used by this particular
             // readout. We don't strictly need this, but setting a limit here
             // provides extra protection against decoder bugs.
-            int jx = n + nproj*( j + nchamber*j );
+            int jx = n + nproj*( j + nplanes*k );
             map<int,int>::iterator it = nstrip_map.find(jx);
             if( it == nstrip_map.end() ) {
             cerr << "Error retrieving nstrips for sector/plane/proj = "
