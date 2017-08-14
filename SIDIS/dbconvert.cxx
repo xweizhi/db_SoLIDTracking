@@ -439,7 +439,8 @@ int main( int argc, const char** argv )
   // including parameters used for pattern recognition and track fit, since they are done here//
   outp << dashes<<endl;
   outp << "# parameters common for all tracker systems"<<endl;
-  outp << dashes<<endl;  
+  outp << dashes<<endl;
+  outp << allsystems_prefix << "detconf = 0" << endl;
   outp << allsystems_prefix << "MCdata = 1" << endl;
   outp << allsystems_prefix << "ntracker = "<<nplanes << endl;
   outp << allsystems_prefix << "do_rawdecode = "<<1<<endl;
@@ -518,6 +519,9 @@ int main( int argc, const char** argv )
   outp << dashes<<endl;
   outp << alltrackers_prefix << "nchamber = " <<nchamber<< endl;
   outp << alltrackers_prefix << "combine_hits = " <<1<< endl;
+  outp << alltrackers_prefix << "kill_cross_talk = " <<1<< endl;
+  outp << alltrackers_prefix << "cross_talk_thres = " <<0.1<< endl;
+  outp << alltrackers_prefix << "cross_strip_apart = " <<32<< endl;
 //******************************************************************************************//
   
 //**********************parameters common for all chambers**********************************//

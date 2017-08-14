@@ -22,7 +22,7 @@
 #include <utility>
 #include <iomanip>
 #include <cassert>
-#include <unistd.h> 
+#include <unistd.h>
 
 using namespace std;
 
@@ -106,7 +106,7 @@ struct ValueSet_t {
   double angle[2], start[2], pitch[2];  // angle is that of the axis!
   int nstrips[2];                       // number of u/v strips
   int iplane, isector;                  // plane index (1-5), sector number
-  
+
 };
 //__________________________________________________________________________________
 // Helper functors for STL algos
@@ -193,7 +193,7 @@ int main( int argc, const char** argv )
 {
   prgname = basename(argv[0]);
   getargs(argc,argv);
-  
+
   const int    nsystem   = 30; //PVDIS has 30 independent tracker system
   const int    nplanes   = 5;  //each system has 5 GEM plane
   const int    nchamber  = 1;  //each plane has 1 GEM chamber
@@ -203,12 +203,13 @@ int main( int argc, const char** argv )
                                //but vertical to that direction
   const double z_shift   = -0.31825/100.; //GEMC gives z position of a chamber as the center
                                           //of the GEM, we want the center of the first gas layer
-  const double phi_start = -90;//starting phi angle of the 0-th chamber   
+  const double phi_start = 0;//starting phi angle of the 0-th chamber   
   
   double strip_angle[2] = { Uangle, Vangle};
   
   //phi angle offset of the GEM chamber on each plane
-  double phi_offset[nplanes] = {0.5,   0.0,   0.0,   -0.5,   -0.5 };
+  //double phi_offset[nplanes] = {3.0,   2.0,   2.0,   0.,   0. }; //CLEO
+  double phi_offset[nplanes] = {3.2, 2.2, 2.2, -0.8, -0.8};
   
   //nominal z position of each GEM plane
   double plane_z[nplanes]    = {1.575, 1.855, 1.900, 3.060,  3.150};
@@ -301,16 +302,16 @@ int main( int argc, const char** argv )
 	       << ", ypitch = " << vals.ypitch << endl;
 	  exit(3);
 	}
-	vals.phioff = phi_offset[ip];
+	vals.phioff = -1.*phi_offset[ip];
       }
 
       // Convert parameters from libsolgem conventions to ours
       double phi2 = 0.5*vals.dphi;  // half opening angle
       vals.phi    = vals.phi0 + phi2 - vals.phioff;
-      
+
       //keep phi from 0 to 360 in data base
       vals.phi = TVector2::Phi_0_2pi(vals.phi*TMath::DegToRad())*TMath::RadToDeg();
-      
+
       // Calculate strip start positions in the same way as in
       // TSolGEMPlane::ReadGeometry
       double torad = TMath::DegToRad(), phi2rad = phi2 * torad;
@@ -439,7 +440,8 @@ int main( int argc, const char** argv )
   // including parameters used for pattern recognition and track fit, since they are done here//
   outp << dashes<<endl;
   outp << "# parameters common for all tracker systems"<<endl;
-  outp << dashes<<endl;  
+  outp << dashes<<endl;
+  outp << allsystems_prefix << "detconf = 1" << endl;
   outp << allsystems_prefix << "MCdata = 1" << endl;
   outp << allsystems_prefix << "ntracker = "<<nplanes << endl;
   outp << allsystems_prefix << "do_rawdecode = "<<1<<endl;
@@ -497,10 +499,6 @@ int main( int argc, const char** argv )
   outp << allsystems_prefix << "ecal.faec_z = " <<3.23<< endl;
   outp << allsystems_prefix << "ecal.ec_pos_reso = " <<0.01<< endl;
   outp << allsystems_prefix << "ecal.ec_energy_reso = " <<0.1<< endl;
-  outp << allsystems_prefix << "ecal.mrpc_pitch_width = " <<0.025<< endl;
-  outp << allsystems_prefix << "ecal.mrpc_n_sectors = " <<50<< endl;
-  outp << allsystems_prefix << "ecal.mrpc_phi_reso = " <<0.005<< endl;
-  outp << allsystems_prefix << "ecal.mrpc_rmin = " <<0.90<< endl;
   outp << allsystems_prefix << "ecal.laec_detmap_pos = ";
   write_cslh( outp, maxcrates, 0, 0, 29 ); outp<<endl;
   outp << allsystems_prefix << "ecal.laec_detmap_edp = ";
@@ -518,6 +516,9 @@ int main( int argc, const char** argv )
   outp << dashes<<endl;
   outp << alltrackers_prefix << "nchamber = " <<nchamber<< endl;
   outp << alltrackers_prefix << "combine_hits = " <<1<< endl;
+  outp << alltrackers_prefix << "kill_cross_talk = "<<1<<endl;
+  outp << alltrackers_prefix << "cross_talk_thres = "<<0.1<<endl;
+  outp << alltrackers_prefix << "cross_strip_apart = "<<32<<endl;
 //******************************************************************************************//
   
 //**********************parameters common for all chambers**********************************//
@@ -529,6 +530,7 @@ int main( int argc, const char** argv )
   outp << allchambers_prefix << "do_3d_amcorr = " <<1<< endl;
   outp << allchambers_prefix << "3d_amcorr_cut = " <<1<< endl;
   outp << allchambers_prefix << "nreadout = " <<2<< endl;
+  outp << allchambers_prefix << "acc_file_name = " <<"pos_acceptance.root"<< endl;
 //******************************************************************************************//
 //***********************parameters common for all readouts*********************************//
 //include also parameters used for readout decoding and hit clustering since they are done here//
@@ -537,10 +539,10 @@ int main( int argc, const char** argv )
   outp << "# parameters common for all readouts"<<endl;
   outp << dashes<<endl;
   
-  outp << allreadouts_prefix << "xp_res = " << 9e-05<< endl;
+  outp << allreadouts_prefix << "xp_res = " << 6e-05<< endl;
   outp << allreadouts_prefix << "maxclustsiz = "<< 4 <<endl;
-  outp << allreadouts_prefix << "adc_min = " <<90 <<endl;
-  outp << allreadouts_prefix << "split_frac = "<<0.1 <<endl;
+  outp << allreadouts_prefix << "adc_min = " <<95 <<endl;
+  outp << allreadouts_prefix << "split_frac = "<<0.2 <<endl;
   outp << allreadouts_prefix << "maxhits = " <<1000<<endl;
   outp << allreadouts_prefix << "maxsamp = "<<1<<endl;
   outp << allreadouts_prefix << "adc_sigma = "<<0.2<<endl;
@@ -565,7 +567,7 @@ int main( int argc, const char** argv )
   for (int i=0; i< nsystem; i++){
     tmp_phi_angle = TVector2::Phi_0_2pi(tmp_phi_angle*TMath::DegToRad())*TMath::RadToDeg();
     outp << out_prefix <<i<<"."<<"phi = "<<tmp_phi_angle<<endl;
-    tmp_phi_angle -= 12.;
+    tmp_phi_angle += 12.;
   }
 //********************************************************************************************//
 
